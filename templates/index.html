@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reconocedor MNIST</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f7f9fa;
+            color: #2c3e50;
+            max-width: 500px;
+            margin: 40px auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        p {
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        form {
+            background: #ffffff;
+            padding: 25px;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            text-align: left;
+        }
+
+        input[type="file"] {
+            display: block;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .preview-caja {
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 20px;
+            background-color: #fafbfc;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-caja img {
+            max-width: 100px;
+            max-height: 100px;
+        }
+
+        #textoPreview {
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        /* Botón en tono morado / lila bonito */
+        button {
+            background-color: #7c3aed;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #6d28d9;
+        }
+
+        button:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        #resultado {
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Reconocedor de Números (IA)</h1>
+    <p>Sube una imagen de un número escrito a mano (0-9).</p>
+
+    <form id="formulario">
+        <label for="inputImagen" style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 5px;">Seleccionar archivo</label>
+        <input type="file" id="inputImagen" accept="image/*" required>
+        
+        <div style="font-size: 13px; font-weight: bold; margin-bottom: 5px;">Vista previa de la imagen</div>
+        <div class="preview-caja">
+            <img id="preview" style="display: none;" alt="Previsualización">
+            <span id="textoPreview">Ningún archivo seleccionado</span>
+        </div>
+
+        <button type="submit" id="btnEnviar">Analizar Imagen</button>
+    </form>
+
+    <div id="resultado"></div>
+
+    <script>
+        const inputImagen = document.getElementById('inputImagen');
+        const preview = document.getElementById('preview');
+        const textoPreview = document.getElementById('textoPreview');
+        const formulario = document.getElementById('formulario');
+        const btnEnviar = document.getElementById('btnEnviar');
+        const divResultado = document.getElementById('resultado');
+
+        inputImagen.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    textoPreview.style.display = 'none';
+                    divResultado.innerHTML = '';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        formulario.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const file = inputImagen.files[0];
+            if (!file) return;
+
+            btnEnviar.disabled = true;
+            btnEnviar.textContent = 'Analizando...';
+            divResultado.innerHTML = '';
+
+            const formData = new FormData();
+            formData.append('imagen', file);
+
+            try {
+                const response = await fetch('/predecir', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    divResultado.innerHTML = Resultado: ¡Es un ${data.numero_predicho}! (Confianza: ${data.confianza}%);
+                } else {
+                    divResultado.innerHTML = Error: ${data.error};
+                }
+            } catch (error) {
+                divResultado.innerHTML = Error de conexión con el servidor.;
+            } finally {
+                btnEnviar.disabled = false;
+                btnEnviar.textContent = 'Analizar Imagen';
+            }
+        });
+    </script>
+</body>
+</html>
