@@ -159,12 +159,12 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    divResultado.innerHTML = Resultado: ¡Es un ${data.numero_predicho}! (Confianza: ${data.confianza}%);
+                    divResultado.innerHTML = `Resultado: ¡Es un ${data.numero_predicho}! (Confianza: ${data.confianza}%)`;
                 } else {
-                    divResultado.innerHTML = Error: ${data.error};
+                    divResultado.innerHTML = `Error: ${data.error}`;
                 }
             } catch (error) {
-                divResultado.innerHTML = Error de conexión con el servidor.;
+                divResultado.innerHTML = `Error de conexión con el servidor.`;
             } finally {
                 btnEnviar.disabled = false;
                 btnEnviar.textContent = 'Analizar Imagen';
